@@ -1,0 +1,51 @@
+#######################
+# see osd status :
+    ceph osd dump
+#######################
+# see number of osd and up status and epoch
+    ceph osd stat
+#######################
+# checking a cluster usage :
+    ceph df
+######################
+# watching a cluster :
+    ceph -W  # this command same as tail -f
+######################
+# view disk on ceph by tree :
+    ceph osd tree 
+######################
+# view monitor node status :
+    ceph mon stat 
+######################
+# view monitor node status with more detail :
+    ceph mon dump
+######################
+# view MDS node status :
+    ceph mds stat
+######################
+# see PG status :
+    ceph pg dump
+# see PG status and store in PATH
+    ceph pg dump -o PATH --format=json
+######################
+# see status of pool :
+    ceph pg dump pools
+######################
+# create osd pool :
+    ceph osd pool create $pool_name pg_num
+        ceph osd pool create test 8
+# note : If you put pgs less than 30, it warns that the load on each pg will increase
+######################
+
+
+
+
+
+
+
+
+
+
+
+
+

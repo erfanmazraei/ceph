@@ -1,0 +1,74 @@
+# 1
+When using Ceph, all types of storage (block, object, and file) are initially changed 
+to object storage. This is because Ceph stores all data as RADOS objects within pools, 
+regardless of the type of client used
+#########################################################################################################
+# 2 what is RADOS
+RADOS stands for Reliable Autonomic Distributed Object Store. It is a distributed object 
+storage system that provides a highly scalable storage service for variably sized objects 
+In Ceph, RADOS is the lower part of the solution, and it provides the underlying storage
+abstraction for the Ceph architecture . RADOS stores data as objects within pools, and it is 
+designed to distribute the complexity surrounding consistent data access, redundant storage,
+failure detection, and failure recovery in clusters consisting of many thousands of storage devices .
+##########################################################################################################
+# 3 crush algoritm ?
+The CRUSH (Controlled Replication Under Scalable Hashing) algorithm is a key component of 
+the Ceph distributed storage system. It is responsible for computing storage locations and
+determining how to store and retrieve data. The main purpose of the CRUSH algorithm is 
+to distribute data objects among storage devices in a way that approximates a uniform probability distribution
+Here's how the CRUSH algorithm works in Ceph:
+    CRUSH Maps: A CRUSH map represents the available storage devices and the logical buckets that contain them 
+    for the ruleset, and by extension, each pool that uses the ruleset
+    Data Distribution: The CRUSH algorithm distributes objects and their replicas (or coding chunks) 
+    according to the hierarchical cluster map defined in the CRUSH map. This allows for efficient data storage 
+    and retrieval across the storage cluster.
+    Direct Communication: By distributing CRUSH maps to Ceph clients, the CRUSH algorithm enables Ceph clients 
+    to communicate with OSDs directly, avoiding a centralized object look-up table that could act as a 
+    single point of failure or a performance bottleneck.This direct communication improves the scalability and
+    performance of the storage cluster.
+    Customization: Users can customize the CRUSH map and the CRUSH algorithm to meet their specific needs.
+    This includes defining custom rules for data placement, adjusting per-device weight values, and setting
+    primary affinity for OSDs
+The CRUSH algorithm in Ceph has been improved over time, and users can choose between different tunables and 
+profiles to support changes in behavior and ensure compatibility between Ceph clients and daemons.
+Customizing the CRUSH map and the CRUSH algorithm can help optimize data placement, performance, and data safety
+in large-scale Ceph clusters.
+############################################################################################################
+# 4 what is PG in ceph
+In Ceph, a Placement Group (PG) is a logical collection of objects that are replicated on OSDs (Object Storage Devices)
+to provide reliability in a storage system
+implementation detail of how Ceph distributes data and are invisible to Ceph clients. The primary purpose of PGs is 
+to improve the scalability and performance of a Ceph storage cluster by organizing and distributing objects across OSDs.
+* A Ceph Storage Cluster may require many thousands of PGs, and the number of PGs you configure depends on the number of 
+  OSDs in your cluster.
+* Each object in Ceph maps to exactly one PG, and one PG maps to a single list of OSDs, where the first OSD in the list is
+  the primary and the rest are replicas
+* The number of PGs in a pool can be obtained using the ceph osd pool get {pool-name} pg_num command
+* You can set the number of PGs for a pool using the ceph osd pool set {pool-name} pg_num {num-pgs} command
+
+The CRUSH (Controlled Replication Under Scalable Hashing) algorithm is responsible for mapping objects to PGs and then mapping PGs 
+to OSDs in a Ceph cluster. It ensures that objects are evenly distributed across OSDs and provides fault tolerance by replicating 
+objects to multiple OSDs. The CRUSH algorithm takes into account the cluster's CRUSH map, which defines the hierarchy and weight of OSDs,
+to make intelligent placement decisions.
+###############################################################################################################
+# 5 what is MDS ?
+In Ceph, MDS stands for Metadata Server. It is responsible for managing the file system namespace and coordinating access to the shared OSD 
+(Object Storage Device) cluster.
+Some key points about MDS in Ceph are:
+    Each CephFS (Ceph File System) requires at least one MDS
+    MDS instances can be deployed using automated deployment tools like Rook and Ansible, or manually using systemd commands
+    MDS servers should be well provisioned with advanced CPUs and sufficient cores, as future versions of Ceph are expected to
+    improve performance by taking advantage of more cores
+    Co-locating the MDS with other Ceph daemons (hyperconverged) is an effective way to utilize available hardware, as long as 
+    all daemons are configured to use the hardware within certain limits
+    MDS instances can be configured with different ranks, which define how the metadata workload is shared between multiple MDS daemons
+    Active MDS daemons manage metadata for files and directories stored on the Ceph File System
+    Standby-replay MDS daemons can be configured to reduce failover time if the active MDS becomes unavailable
+    The number of active and standby MDS daemons can be adjusted to scale metadata performance for large systems
+##################################################################################################################
+
+
+
+
+
+
