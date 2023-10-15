@@ -1,0 +1,26 @@
+## add osd :
+# on deploy node :
+    ceph-deploy install osd4 ( you must define hosts file for each node )
+# on osd4 Node
+    sudo chmod 644 /etc/ceph/ceph.client.admin.keyring
+
+# on deploy node :
+    ceph-deploy disk list osd4
+    ceph-deploy disk zap osd4 /dev/sdb
+    ceph-deploy disk zap osd4 /dev/sdc
+    ceph-deploy osd create --data /dev/sdb osd4
+    ceph-deploy osd create --data /dev/sdc osd4
+    ceph osd tree # now you can see two osd for node 4 
+    ceph -s # you can see increase your disks size
+
+
+## remove osd :
+# on osd node 4 :
+    ceph osd tree
+    systemctl stop ceph-osd@6.service
+    systemctl stop ceph-osd@7.service
+
+# on deploy node :
+    ceph osd purge osd.6 --yes-i-really-mean-it
+    ceph osd purge osd.7 --yes-i-really-mean-it
+    ceph osd crush rm osd4

@@ -1,0 +1,43 @@
+# on deploy node :
+    ceph-deploy install --rgw client1
+    ceph-deploy rgw create client1
+# on node 1 :
+    sudo systemctl enable ceph-radosgw@rgw.client1
+    sudo systemctl start ceph-radosgw@rgw.client1
+    sudo systemctl enable ceph.target
+    ps –ef | grep rgw
+    sudo netstat -nap | grep 7480
+
+# on deploy node :
+    ceph-deploy admin client1
+
+# on client 1 :
+    ll /etc/ceph/ceph.client.admin.keyring
+    sudo chmod 644 /etc/ceph/ceph.client.admin.keyring
+    ll /etc/ceph/ceph.client.admin.keyring
+    radosgw-admin user create ”--uid=”erfan" --display-name=”erfan"
+    radosgw-admin user list # you can see erfan user 
+    sudo yum -y install s3cmd
+    s3cmd --configure -c s3test.cfg
+    #########
+    Access Key: E09B8NXHU0IBQBREUNBH
+    Secret Key: xwyTKpYqlA9MMVz3Ba0rpoUXgwGVpXnmyjOPPxX2
+    Default Region [US]:
+    S3 Endpoint [s3.amazonaws.com]: client1:7480
+    DNS-style bucket+hostname:port template for accessing a bucket
+    : [%(bucket)s.s3.amazonaws.com]
+    Encryption password: 123
+    Path to GPG program [/bin/gpg]:
+    Use HTTPS protocol [Yes]: no
+    HTTP Proxy server name:
+    Test access with supplied credentials? [Y/n] Y
+    Save settings? [y/N] y
+    Configuration saved to ‘s3test.cfg’
+    #########
+    s3cmd -c s3test.cfg ls
+    s3cmd -c s3test.cfg mb s3://EriBucket
+    md -c s3test.cfg ls # you can see EriBucket
+    echo " SALAMMMMMMM " >devops.txt
+    s3cmd -c s3test.cfg put devops.txt s3://EriiBucket
+    s3cmd -c s3test.cfg la # you can see //EriiBucket/devops.txt
+    

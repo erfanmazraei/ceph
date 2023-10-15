@@ -1,0 +1,15 @@
+ceph osd pool create rbd 128
+rbd pool init rbd
+rbd create rbd/rbddisk --size 2048 --image-feature layering # reserve 2048 block from each disk in ceph
+rbd ls -l # you see this image 
+
+# in client1 : 
+sudo rbd map rbddisk --name client.admin # map rbddisk image , this rbddisk now is driver disk in /dev/
+# we must mount this disk 
+# you can see this dosk by :
+sudo fdisk -l 
+sudo mkfs.xfs /dev/rbd0
+sudo mkdir -p /mnt/myrbd
+sudo mount /dev/rbd0 /mnt/myrbd
+# see that who client can see this image : 
+rbd status rbddisk

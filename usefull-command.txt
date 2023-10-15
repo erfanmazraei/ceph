@@ -31,11 +31,56 @@
 # see status of pool :
     ceph pg dump pools
 ######################
+# see osd pool list :
+    ceph osd pool ls
+    ceph osd pool ls detail
+######################
 # create osd pool :
     ceph osd pool create $pool_name pg_num
         ceph osd pool create test 8
 # note : If you put pgs less than 30, it warns that the load on each pg will increase
 ######################
+# see user aceess (current user ):
+    ceph auth list
+# see user aceess (another user ):
+    ceph auth get TYPEOFUSER.USERNAME
+######################
+# add user :
+    ceph auth add client.user mon 'allow r' osd 'allow rw pool=POOL_NAME'
+######################
+# delete user :
+    ceph auth del client.user
+######################
+# set quota on pool :
+    ceph osd pool set-quota mypool max_objects 1000
+######################
+# delete pool :
+    ceph osd pool delete mypool --yes-i-really-mean-it # maybe you get aceecc error and you must execute next command firstly
+    ceph tell mon.\* injectargs '--mon-allow-pool-delete=true'
+######################
+# rename pool :
+    ceph osd pool create lastname newname
+######################
+# get pool values :
+    ceph osd pool get mypool allo
+    # or :
+    ceph osd pool get mypool size
+    ceph osd pool get mypool min_size
+    ceph osd pool get mypool pg_num
+######################
+# change replica size :
+    ceph osd pool set mypool size number
+######################
+# change PG number :
+    ceph osd pool set mypool pg_num NUMBER 
+######################
+# see MDS stat :
+    ceph mds stat
+######################
+# see file system (fs)
+  ceph fs ls
+######################
+
 
 
 

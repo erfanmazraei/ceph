@@ -66,6 +66,19 @@ Some key points about MDS in Ceph are:
     Standby-replay MDS daemons can be configured to reduce failover time if the active MDS becomes unavailable
     The number of active and standby MDS daemons can be adjusted to scale metadata performance for large systems
 ##################################################################################################################
+# 6 
+each osd have a process id that you can filn this by these commands :
+  ceph osd tree | grep "osd.4" -B 2
+and for example this osd is in osd node 3
+  ssh to osd node 3 and find osd4 process :
+    ps -ef | grep ceph
+###################################################################################################################
+# 7 see path of osd4 in node osd 3 :
+  ssh to node osd 3 and then :
+    sudo ls -l /var/lib/ceph/osd
+###################################################################################################################
+
+
 
 
 

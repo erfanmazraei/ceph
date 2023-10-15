@@ -1,0 +1,85 @@
+###########################################################################
+# 1 Deployment MariaDB with ceph Rados Block Device 
+###########################################################################
+
+# on ceph Deploy Node :
+    su - cephadmin 
+    cd ceph_cluster
+    ceph osd pool create rbd 128
+    rbd pool init rbd
+    rbd create rbd/rbddisk --size 2048 --image-feature layering 
+    rbd ls -l 
+    rbd info rbddisk
+
+# on client 1 : 
+    rbd map rbddisk --name client.admin
+    rbd showmapped
+    lsblk
+    mkfs.xfs /dev/rbd0
+    mkdir /var/lib/mysql
+    mount /dev/rbd0 /var/lib/mysql
+    df -h
+    yum install -y mariadb-server
+    ps -ef | grep mar
+    systemctl start maraidb ; systemctl enable maraidb
+    systemctl status maraidb
+    mysql -u root
+    show databases;
+    create database erfan;
+    show databases;
+    systemctl stop mariadb
+    umount /var/lib/mysql/
+#########################################################################
+# 2 deployment apache with ceph storage cluster
+#########################################################################
+# on deploy node
+    su - cephadmin
+    cd ceph_cluster
+    ceph-deploy mds create mon osd1
+    ceph md stat
+    ceph osd pool create cephfs_data 128
+    ceph osd pool create cephfs_metadata 128
+    ceph fs new cephfs cephfs_metadata cephfs_data
+    ceph mds stat
+    ceph fs status
+    ceph-authtool -p /etc/ceph/ceph.client.admin.keyring > ceph.key
+    scp /home/cephadm/ceph_cluster/ceph.key root@client1:/root/
+    scp /home/cephadm/ceph_cluster/ceph.key root@client2:/root/
+
+# on client 1 
+    mkdir /mnt/cephfs
+    mount -t ceph mon:6789:/ /mnt/cephfs -o name=admin,secretfile=ceph.key
+
+# on client 2
+    mkdir /mnt/cephfs
+    mount -t ceph mon:6789:/ /mnt/cephfs -o name=admin,secretfile=ceph.key
+
+# on deploy node :
+    # create and authorize the client "erfan" to have access to httpsd 
+        ceph auth add client.erfan mon 'allow r' osd 'allow rw pool=cephfs_data'
+        ceph fs  authorize cephfs client.erfan /httpd rw
+        ceph auth get client.erfan
+
+# on client 1
+    mkdir -p /mnt/cephfs/httpd/
+    chmod 777 /mnt/cephfs/httpd/
+    mount -t ceph mon:6789:/httpd /mnt/cephfs/httpd/ -o name=devopsuni,secret=AQDaybxeyneDERAA4WM2w66OYz68rgwj+Z6Nig==
+
+# on client 2 
+    mount -t ceph mon:6789:/httpd /mnt/cephfs/httpd/ -o name=devopsuni,secret=AQDaybxeyneDERAA4WM2w66OYz68rgwj+Z6Nig==
+
+# on client 1 & 2 
+    yum -y install httpd
+    systemctl enable httpd.service ; systemctl restart httpd.service
+    chmod -R 755 /mnt/cephfs/httpd/
+    vim /etc/httpd/conf/httpd.conf and chnge to :
+        “/mnt/cephfs/httpd”
+    systemctl restart httpd
+    
+
+
+
+
+
+
+
