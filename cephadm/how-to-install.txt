@@ -1,0 +1,54 @@
+# step 1 : we have 3 nodes :
+    we execute these aommands on each node :
+        CEPH_RELEASE=18.2.0 # replace this with the active release
+        curl --silent --remote-name --location https://download.ceph.com/rpm-${CEPH_RELEASE}/el9/noarch/cephadm
+        chmod +x cephadm
+        sudo ./cephadm add-repo --release reef
+        apt policy cephadm
+        sudo apt install cephadm
+
+# step 2 : in node 1 :
+    execute this coomand :
+        cephadm bootstrap --mon-ip THIS_NODE_IP --initial-dashboard-user admin --initial-dashboard-password 123456
+
+# step 3 : add host to cluster :
+    execute this coomand :
+        cat /etc/ceph/ceph.pub ( copy this to .ssh/authorized_keys other nodes )
+        cephadm shell 
+        ceph orch host add ceph02 188.121.112.87
+        ceph orch host ls
+            you see : 
+                HOST                       ADDR             LABELS  STATUS  
+                ceph02  188.121.112.87                   
+                ceph01  188.121.113.100  _admin          
+                2 hosts in cluster
+        
+# step 4 : add admin label :
+    execute this command (in first admin node):
+        cephadm shell
+        ceph orch host label add ceph02 _admin
+        ceph orch host ls
+            you see
+                HOST                       ADDR             LABELS  STATUS  
+                ceph02  188.121.112.87   _admin            
+                ceph01  188.121.113.100  _admin          
+                2 hosts in cluster
+
+# step 5 : see what parameter run in which node :
+    execute this coomand (before this command you must execute cephadm shell):
+        ceph orch ps
+
+# step 6 : add osd :
+    execute these commands :
+        ceph orch apply osd --all-available-devices --dry-run (this is simulate)
+        ceph orch apply osd --all-available-devices
+        then new service added to cluster that names of this service is : osd.all-available-devices 
+        and you can see this service by this command : 
+            ceph orch ls
+        and you can see added osd by execute this command : 
+            ceph orch ps 
+        or use this  command :
+            ceph osd tree
+
+
+        
