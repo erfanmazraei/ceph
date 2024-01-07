@@ -49,6 +49,84 @@
             ceph orch ps 
         or use this  command :
             ceph osd tree
+# step 7 : see osd pool :
+    execute this command:
+        ceph osd pool ls 
+        or 
+        ceph osd pool ls detail
 
+# step 8 : create pool with size of pg 64 :
+    execute this command :
+        ceph osd pool create bdpooltest 64
+    see detail :
+        ceph osd pool ls detail
+    we must say to ceph that this pool must use as a bloack device :
+        rbd pool init bdpooltest
+    
+# step 9 : create volume :
+    execute this command :
+        rbd create --size 10G --pool bdpooltest bdvolumetest
+
+# step10 : see volumes :
+    execute this command :
+        rbd ls --pool bdpooltest
+        or
+        rbd ls --pool bdpooltest -l ( -l for see more details )
+
+# step 11 : we must create new user and also we can see users :
+    execute this command for see all users:
+        ceph auth ls
+    execute this command for create new user :
+        ceph auth add client.test mon 'allow r' osd 'allow rwx pool=bdpooltest'
+    ok see this user and permission by execute this command :
+        ceph auth get client.test
+
+# step 12 : we want use this volume in client ( new linux ) :
+    execute this command :
+        in this client , update your repo for install ceph-common like step 1 
+        apt install ceph-common
+
+# step 13 : copy config from server and paste to client :
+    execute this command in server :
+        cephadm shell
+        ceph config generate-minimal-conf
+        or
+        cat /etc/ceph/ceph.conf
+    execute this command in client :
+        vim /etc/ceph/ceph.conf ( past config here )
+
+# step 14 : add created user to client :
+    execute this command :
+        copy output of this command in server : 
+            ceph auth get client.test 
+        paste to client :
+            vim /etc/ceph/client.test
+
+
+# step 15 : load rbd module in client :
+    execute this command :
+        modprobe rbd
+
+# step 16 : see volume in client
+    execute this command :
+        rbd -c /etc/ceph/ceph.conf -k /etc/ceph/client.test -n client.test ls --pool bdpooltest -l
+
+## note : in step 14 we create this file : /etc/ceph/client.test so for list volume we must
+          use -k /etc/ceph/client.test , if we rename /etc/ceph/client.test to 
+          /etc/ceph/client.keyring so we use this command :
+            rbd -n client.test ls --pool bdpooltest -l
+            instead of step 16
+
+step 17 : map this volume in client :
+    execute this command :
+        rbd -n client.test device map --pool bdpooltest bdvolumetest
+            and in output you see : /dev/rbd0
+        
+step 18 : create file system and mount block device in client :
+    execute this command :
+        mkfs.ext4 /dev/rbd0
+        mount /dev/rbd0 /mnt
+        df -h ( you see /mnt with 10G size )
+        
 
         
