@@ -117,16 +117,42 @@
             rbd -n client.test ls --pool bdpooltest -l
             instead of step 16
 
-step 17 : map this volume in client :
+# step 17 : map this volume in client :
     execute this command :
         rbd -n client.test device map --pool bdpooltest bdvolumetest
             and in output you see : /dev/rbd0
+    this is not permanent , so you must do this for use this volume permanent :
+        vim /etc/ceph/rbdmap
+            add this line :
+                bdpooltest/bdvolumetest id=test,keyring=/etc/ceph/client.keyring
+                systemctl restart rbdmap.service
+                ls /dev/rbd* ( you see your block device )
+
         
-step 18 : create file system and mount block device in client :
+# step 18 : create file system and mount block device in client :
     execute this command :
         mkfs.ext4 /dev/rbd0
         mount /dev/rbd0 /mnt
         df -h ( you see /mnt with 10G size )
+
+# step 19 : config fstab for permanent mount in client :
+    execute this command :
+        add this line to /etc/fstab :
+            /dev/rbd/bdpooltest/bdvolumetest /mnt ext4 noauto 0 0
         
+### note in video 13 , why we must delete image after remove files in volume ?
+
+# step 20 : see our crush map :
+    execute this command :
+        ceph osd getcrushmap -o crush.e ( this is encrypted and we must decrypt this file )
+        so :
+            crushtool -d crush.e -o crush.d
+        cat crush.d
+
+
+
+
+
+
 
         
