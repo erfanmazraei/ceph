@@ -149,11 +149,35 @@
             crushtool -d crush.e -o crush.d
         cat crush.d
 
-step 21 : upgrade cluster
+# step 21 : upgrade cluster
     execute this command :
         ceph orch upgrade start --ceph-version 18.2.0
         check upgrade status :
             ceph orch upgrade status
+# step 22 : work with orch :
+    execute this command :
+        ceph orch status # see backend (cephadm) and status of cluster
+        ceph orch ls # see services
+        ceph orch rm grafana # remove grafana service (wee see grafana service in ceph orch ls)
+        ceph orch apply grafana # create grafana again
+        ceph orch apply alertmanager --placement="2 ceph01 ceph02" # we must alertmanager be in ceph01 and also ceph02
+        ceph orch ps # see daemon
+        ceph orch daemon start osd.8 (we see osd.8 in ceph orch ps)
+
+# step 23 : see and change ceph config :
+    execute this command :
+        ceph config dump
+        ceph config set mon mon_allow_pool_delete true # we must set this for delete pool
+
+# step 24 : remove pool :
+    execute this command : 
+        ceph config set mon mon_allow_pool_delete true
+        ceph osd pool rm POOLNAME
+        ceph config set mon mon_allow_pool_delete false
+
+
+
+
 
 
 
