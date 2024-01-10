@@ -149,6 +149,11 @@
             crushtool -d crush.e -o crush.d
         cat crush.d
 
+step 21 : upgrade cluster
+    execute this command :
+        ceph orch upgrade start --ceph-version 18.2.0
+        check upgrade status :
+            ceph orch upgrade status
 
 
 
