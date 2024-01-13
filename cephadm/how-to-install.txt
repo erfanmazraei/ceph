@@ -174,6 +174,101 @@
         ceph config set mon mon_allow_pool_delete true
         ceph osd pool rm POOLNAME
         ceph config set mon mon_allow_pool_delete false
+# step 25 : setup rgw :
+    execute this command :
+        ceph orch apply rgw tgwtest
+        ceph orch ls ( you see two container created for rgw.tgwtest , but in production all monoitor have a rgw container)
+        ceph osd pool ls ( you can see some pool created after apply rgw like : default.rgw.log and default.rgw.control and default.rgw.meta and .rgw.root)
+
+# step 26 : create user in server for use rgw :
+    execute this command :
+        radosgw-admin user create --uid=erfan --display-name="erfan mazraei" --email=erfanmazraei@gmail.com
+        # in output you see some information like access key and secret key and ...
+
+# step 27 : use storage in client :
+    execute this command :
+        aws configure --profile=erfan
+        # and then input access key and secret key 
+        # you can see information in : 
+            .aws/configs
+        radosgw-admin bucket list # you see nothing
+        aws --profile erfan --endpoint-url http://IP_OF_HOST_THAT_RGW_CONTAINER_HERE s3 ls
+        aws --profile erfan --endpoint-url http://IP_OF_HOST_THAT_RGW_CONTAINER_HERE s3 mb s3://buckettest
+        radosgw-admin bucket list # you see buckettest 
+
+# step 28 : create and delete file in bucket :
+    execute this command :
+        aws --profile erfan --endpoint-url http://IP_OF_HOST_THAT_RGW_CONTAINER_HERE s3api put-object --bucket buckettest --key testfile --body /etc/fstab
+        aws --profile erfan --endpoint-url http://IP_OF_HOST_THAT_RGW_CONTAINER_HERE s3api delete-object --bucket buckettest --key testfile
+
+# step 29 : see files in object :
+    execute this command :
+        aws --profile erfan --endpoint-url http://IP_OF_HOST_THAT_RGW_CONTAINER_HERE  s3api list-object --bucket buckettest
+
+# step 30 : create rgw with custom pool :
+    execute this command :
+        firstly remove last rgw :
+            ceph orch rm rgw.tgwtest
+        after remove rgw , pool of this rgw not deleted and we deleted these pools manualy :
+            ceph config mon  mon_allow_pool_delete true
+            ceph osd pool rm .rgw.root .rgw.root(and other pool for last rgw) --yes-i-really-really-mean-it
+        now apply new rgw :
+            ceph orch  apply rgw test
+            radosgw-admin zone get > test.json
+            vim test.json
+            radosgw-admin zone set < test.json
+            ceph orch restart rgw.test
+            # and then ceph created new pools and then you must delete older pools
+# step 31 : create erasure pool for data for rgw
+    execute this command :
+        see all erasure profile :
+            ceph osd erasure-code-profile ls # you see just default
+        get config of specific erasure profile :
+            ceph osd erasure-code-profile get default
+        create new profile :
+            ceph osd erasure-code-profile set myecp k=2 m=1 crush-failure-domain=host
+        create pool with new profile :
+            ceph osd pool create cluster.rgw.buckets.data erasure myecp
+        see detail of pool :
+            ceph osd pool ls detail
+        now we must set rgw application on this pool : # application like : rbd cephfs or rgw
+            ceph osd pool application enable cluster.rgw.buckets.data rgw
+        see that rgw application now be set on this pool :
+            ceph osd pool ls detail
+
+# step 32 : setup cecphfs 
+    # when you execute ls , your req sended to MDS and MDS interact with meta (pool) but 
+      when you touch a new file , youre req directly sended to data (pool) , in chephfs we 
+      have two pool : meta nad data
+    execute this command :
+        ceph fs volume create fstest
+    see all changes in cluster :
+        ceph -s  # you can see mds added in services tab and volumes added in data tab 
+        ceph osd pool ls # you can see two pool added : meta and data
+    create user :
+        ceph fs authorize fstest client.test / rw
+        ceph auth get client.test 
+
+# step 33 : use ceph fs in client :
+    execute this command :
+        apt install ceph-fuse ceph-common
+        vim /etc/ceph/ceph.keyring # paste output of (in ceph server : $ ceph auth get client.test)
+    mount :
+        ceph-fuse --id test /mnt
+        cd /mnt 
+        mkdir dir1 dir2 dir3
+
+# step 34 : get more test from ceph fs in client :
+    execute this command in server :
+        ceph fs authorize fstest client.test1 / r /dir1 rw
+        vim /etc/ceph/ceph.keyring # paste output of (in ceph server : $ ceph auth get client.test1)
+        ceph-fuse --id test1 /mnt
+        # you cand create directory in / but you can create in /dir1
+
+
+
+
+    
 
 
 
